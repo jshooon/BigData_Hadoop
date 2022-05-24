@@ -1,0 +1,285 @@
+Hive
+ - Data Warehouse
+ - 분산환경
+ - hdfs, MapReduce
+ - HiveQL
+ - 외부 시스템에서 Java를 사용하여 Hive에 접근하기
+ - Java 웹사이트
+ - VM(Hadoop, Hive), Host(Java)
+ - VM(Hadoop, Hive), Host(Python)
+ - hiveserver2 : IP 주소, 포트번호(10000)
+
+인공지능 
+ - ML(Machine Learning), 인공신경망(Deep Learning)
+ - Tensorflow(keras), PyTorch
+
+--------------------------------------------------------------------------------------------------------------------
+
+Spark
+ - Hadoop-Eco-System
+ - 분석(통계, Machine Learning)
+ - MapReduce 대체를 위한 방법
+ - SQL 지원
+ - In-Memory : 최대 100배 속도
+DataFrame
+ - Spark 스파크에도 데이터프레임이있고
+ - 스파크의 데이터프레임을 판다스데이터프레임으로 변환이 가능하다.
+ - pandas.DataFrame 판다스에도 데이터프레임이 있다.
+  - pandas.DataFrame은 연산 default로는 세로축으로 한다.
+#Jupyter NoteBook에서 test해본다.
+import pandas as pd
+
+df = pd.DataFrame({'A':[2,4,8],
+              'B':[5,8,2],
+              'C':[9,5,7]})
+
+df
+
+#pandas-DataFrame의 default연산방식은 세로축.
+df.sum()
+
+# 가로의 합(인덱스별 합계)을 구하려면 axis=1를 사용한다.
+df.sum(axis=1)
+
+
+
+Spark 설치방법
+설치 사이트 https://spark.apache.org/downloads.html 들어가서 버전 확인.
+Download Spark: spark-3.1.3-bin-hadoop3.2.tgz 클릭. 접속 후 링크 복사.
+
+https://dlcdn.apache.org/spark/spark-3.1.3/spark-3.1.3-bin-hadoop3.2.tgz
+
+1. wget https://dlcdn.apache.org/spark/spark-3.1.3/spark-3.1.3-bin-hadoop3.2.tgz (입력)
+
+2. tar -xvzf spark-3.1.3-bin-hadoop3.2.tgz (압축풀기)
+
+3. mv spark-3.1.3-bin-hadoop3.2 spark-3.1.3 (폴더명 변경)
+
+4. nano .bashrc (열기)
+
+5. (맨 밑에 환경설정 등록)
+export SPARK_HOME=/home/hduser/spark-3.1.3
+export PATH=$PATH:$SPARK_HOME/bin:$SPARK_HOME/sbin
+export SPARK_CONF_DIR=$SPARK_HOME/conf
+export SPARK_MASTER_HOST=localhost
+export PYSPARK_PYTHON=python3
+export PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.9-src.zip:$PYTHONPATH
+export PATH=$SPARK_HOME/bin:$SPARK_HOME/python:$PATH
+
+6. source .bashrc (한번 실행해주기)
+
+7. echo $SPARK_HOME (경로 확인)
+
+8. spark-shell (실행하는지 확인 spark-shell실행(windows의 cmd))
+# 실행이안된다면 아래 해결법
+
+해결법
+1. spark-3.1.3/bin으로 이동.
+2. spark-shell 실행
+3. 안된다면 삭제 후 재실행
+
+9. spark실행한다면 scala언어를 사용해야함.
+# spark, python, java, R 지원하기 때문에 python언어를 사용하자.
+
+10. :quit or ctrl+D (spark종료)
+
+# python 언어를 사용하려면 
+1. pyspark (pyspark 실행)
+
+# python에서 pyspark를 찾을 수 있는 module설치
+1. pip3 install findspark
+
+--------------------------------------------------------------------------------------------------------------------
+windows에 spark 설치, 코딩은 Anaconda Jupyter Notebook작성
+Host(Jupyter Notebook) -----> VM(Hadoop, Spark)
+ - spark-master.sh 실행
+ - spark-worker.sh 실행
+
+windows에 spark설치 방법
+https://www.apache.org/dyn/closer.lua/spark/spark-3.1.3/spark-3.1.3-bin-hadoop3.2.tgz
+D:/spark/스파크 압축파일 다운로드/압축해제
+
+winutils.exe 설치 https://github.com/steveloughran/winutils/tree/master/hadoop-3.0.0/bin
+D:/spark/스파크 압축해제 디렉토리/bin/winutils.exe 다운
+
+Anaconda prompt실행
+findspark 설치 : python -m pip install findspark
+
+환경변수 설정
+윈도우 검색 시스템 환경변수 편집 클릭
+환경변수 누르고, 시스템 변수 새로만들기
+
+변수이름 = 변수값
+SPARK_HOME = D:\spark\spark-3.1.3-bin-hadoop3.2
+HADOOP_HOME = D:\spark\spark-3.1.3-bin-hadoop3.2
+PYSPARK_DRIVER_PYTHON = jupyter
+PYSPARK_DRIVER_PYTHON_OPTS = notebook
+
+Path는 편집 > 새로만들기
+PATH = %HADOOP_HOME%\bin
+JAVA_HOME = 자바가 설치된 루트 경로(bin디렉토리 상위까지)
+
+Jupyter Notebook 실행
+# 실행해보기
+import findspark
+findspark.init()
+
+import pyspark              # only run after findspark.init()
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder.getOrCreate()
+
+df = spark.sql('''select 'spark' as hello ''')
+df.show()
+
+spark 외부접속하려면, 
+1. cd spark-3.1.3/sbin
+2. start-master.sh 실행
+3. start-worker.sh spark://localhost:7077
+localhost:7077 : 
+
+--------------------------------------------------------------------------------------------------------------------
+
+스파크에서 제공하는 프로그램 방식
+spark.read.csv('/home/hduser/employee.csv').show() (python언어를 사용하여 local에 있는파일 읽어오기.)
+
+
+spark.read.csv('hdfs://localhost:9000/user/mydata/employee.csv').show() (python언어를 사용하여 hdfs에있는 파일 읽어오기.)
+# localhost:9000 NameNode 포트번호.
+
+
+# python에서 pyspark를 찾을 수 있는 module설치
+1. pip3 install findspark
+
+읽어오기
+df = sparkSession.read.csv()
+df = sparkSession.read.load()
+
+쓰기
+df = sparkSession.read.csv()
+표처럼 저장해달라는 뜻.
+mode='overwrite' = 이미파일이있으면 에러가 나기때문에 파일이 있다면, 덮어쓰라는 뜻.
+df.write.csv('filename', mode='overwrite')
+
+#sparkSession.read.csv을 사용하여 데이터 읽어오기.
+
+1. mkdir pyspark_test (계정 루트 디렉토리에 pyspark_test 디렉토리 생성.)
+
+2. nano local_file_load.py (로컬에서 사용할 스파크 세션 파일만들기)
+                                  
+#! /usr/bin/python3
+# findspark import후 초기화
+# 빨리 찾기위한 module 있으나 없으나 별 차이가 없다.
+import findspark
+findspark.init()
+from pyspark.sql import SparkSession
+#SparkSession 객체 생성 방법. (앱이름을 pyspark-hdfs1라는것으로 임의로 주고 .getOrCreate() 해준>
+sparkSession = SparkSession.builder.appName("pyspark-hdfs1").getOrCreate()
+
+#csv를 읽으면, DataFrame(데이터틀:테이블,표)이 된다. 
+# df1 = DataFrame(데이터틀:테이블,표)
+df1 = sparkSession.read.csv('/home/hduser/employee.csv')  # csv 내의 헤더가 없는 경우
+# .toDF()컬럼명을 추가해준다. 위의 df1과 밑의 df1은 다르다. 컬럼명 있고 없고.
+df1 = df1.toDF('id','name','salary','job')        #  컬럼명 추가
+df1.show()
+
+# csv 파일에 헤더가 포함된 경우
+#df2 = sparkSession.read.csv('emp_with_header.csv', header=True)
+#df2.show()
+
+# hdfs 영역으로부터 파일 읽어오기
+df = sparkSession.read.csv('hdfs://localhost:9000/user/mydata/employee.csv')
+df = df.toDF('id','name','salary','job') 
+df.show()
+
+#withColumn(컬럼명을 가지고 작업을 하겠다라는 뜻.)
+df = df.withColumn('salary', df.salary+1000)
+df.show()
+# 저장 후 나오기
+
+3. chmod 764 local_file_load.py (권한 설정)
+
+4. ./local_file_load.py (파일 실행)
+
+# sparkSession.read.load를 사용하여 파일 읽어오기.
+1. nano local_file_load2.py (파일생성)
+
+2. (내용 붙여넣기)
+#! /usr/bin/python3
+
+import findspark
+findspark.init()
+from pyspark.sql import SparkSession
+
+sparkSession = SparkSession.builder.appName("pyspark-hdfs2").getOrCreate()
+
+# read.load()는 다양한 옵션을 설정할 수 있다
+df2 = sparkSession.read.load('/home/hduser/employee.csv',
+# inferSchema='true' :데이터들의 자료형을 자동으로 설정해라 라는뜻. 숫자는 숫자 텍스트는 텍스트
+# sep() = 데이터 분리, = split()와 같다 보면된다.
+    format='csv', sep=',', inferSchema='true', header='false')
+df2 = df2.toDF('id','name','salary','job')
+df2.show()
+#저장 후 나가기
+
+
+--------------------------------------------------------------------------------------------------------------------
+
+문제 1.
+헤더 표시 하고, 데이터 5줄 나오도록 출력.
+
+문제 2.
+로컬에 있는 employee.csv에 헤더를 추가(num,name,salary,job)
+컬럼명이 포함된 csv 파일을 로컬에서 읽어서 화면에 표시
+
+문제 3.
+hdfs에서 employee.csv를 읽어와서
+컬럼명을 추가하고(num,name,salary,job)
+salary에 5000을 추가하여 
+로컬에 employee_increase.csv 로 저장하고,
+저장된 파일의 내용을 다시 읽어서 화면에 표시해보세요.
+
+#! /usr/bin/python3
+# 방법 1
+# write.csv 방법
+# findspark import후 초기화
+# 빨리 찾기위한 module 있으나 없으나 별 차이가 없다.
+import findspark
+findspark.init()
+from pyspark.sql import SparkSession
+
+sparkSession = SparkSession.builder.appName("pyspark-hdfs4").getOrCreate()
+
+df1 = sparkSession.read.csv('hdfs://localhost:9000/user/mydata/employee.csv',
+        inferSchema=True, header=False) 
+df1.show()
+
+df2 = df1.toDF('id','name','salary','job')
+df2 = df2.withColumn('salary', df2.salary+5000)
+df2.show()
+df2.write.csv('/home/hduser/pyspark_test/employee_increase.csv', mode='overwrite', header=True)
+
+df3 = sparkSession.read.csv('/home/hduser/pyspark_test/employee_increase.csv', header=True)
+df3.show()
+
+#! /usr/bin/python3
+# 방법2
+# write.format 방법
+# findspark import후 초기화
+# 빨리 찾기위한 module 있으나 없으나 별 차이가 없다.
+import findspark
+findspark.init()
+from pyspark.sql import SparkSession
+
+sparkSession = SparkSession.builder.appName("pyspark-hdfs4").getOrCreate()
+
+df1 = sparkSession.read.csv('hdfs://localhost:9000/user/mydata/employee.csv',
+        inferSchema=True, header=False) 
+df1.show()
+df2 = df1.toDF('id','name','salary','job')
+df2 = df2.withColumn('salary', df2.salary+5000)
+df2.show()
+df2.write.format('csv').option('header', True).mode('overwrite')\.option('sep',',').save('local_data')
+
+df3 = sparkSession.read.csv('/home/hduser/pyspark_test/employee_increase.csv', header=True)
+df3.show()

@@ -1,0 +1,41 @@
+스트림(Stream)
+ - 표준출력 스트림 : 표준출력장치 모니터에 표시.
+ - 표준입력 스트림 : 표준입력장치 키보드로부터 입력.
+
+cat sample.txt : sample.txt 내용을 표준출력
+
+cat > sample.txt : sample.txt파일에 내용을 표준입력
+
+cat >> sample.txt : sample.txt파일에 내용 이어쓰기 표준입력
+
+a | b : a에서 표준출력 --> b의 표준입력으로 전환.
+
+문제 1.
+a에서 1~5까지 5회 표준출력한다.
+b에서는 a의 출력값을 모두 받아서 합산한 결과를 화면에 표시.
+
+Hadoop 
+ - 빅데이터 플랫폼
+ - 분산(Distriputed) 수집, 처리, 저장, 분석 시스템
+ - 분산 클러스터링
+ - Name node, Data node
+ - Linux운영체제에서만 돌아간다.
+장점 1. 컴퓨터들이 분업하여 빠르게 처리.
+장점 2. 하나의 컴퓨터가 고장나도, 데이터를 다른 클러스트 노드(컴퓨터)에 중복 저장하기 때문에 이어서 처리가능.
+
+HDFS(하둡파일시스템) 명령어(분산환경의 Storage를 다룰 수 있다.)
+Storage : 분산환경에 데이터 저장/ 읽어오기(입출력)
+ - HDFS 명령어 사용.
+Process : 데이터 분산처리, 분산처리한 데이터 통계분석, ML분석
+ - Eco-System : HBase, Hive, Spark(SQL, ML)
+
+MapReduce > Spark(In-Memory) Spark가 100배빠름
+
+hdfs 명령어
+
+ls / (linux 로컬 최상위 루트 목록보기)
+
+hdfs dfs -ls / (분산환경 시스템에 대한 목록보기)
+hdfs dfs -ls -R / (분산환경 시스템에 대한 디렉토리 하위디렉토리까지 순차적으로 출력)
+hdfs dfs -copyFromLocal 파일명 /디렉토리명 (로컬에있는 파일 복사해서 분산환경 시스템에 있는 디렉토리 안에 붙여넣기)
+(ex hdfs dfs -copyFromLocal sample.txt /user/mydata/)

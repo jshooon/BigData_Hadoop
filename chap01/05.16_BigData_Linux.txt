@@ -1,0 +1,201 @@
+빅데이터 플랫폼
+ - 수집, 저장, 처리, 분석(통계분석, Machine Learning)
+ - Hadoop (Google File System -> Open source)
+ - 빅데이터 분산환경(Distributed) : Clustering 환경(컴퓨터한대가 메인이며, 연결된 나머지 컴퓨터가 작업을 분산하여 처리)
+ - 빅데이터 : 컴퓨터 한대로 처리할 수 없는 정도의 양의 데이터.
+
+1. 수퍼 컴퓨터
+2. 저사양 컴퓨터 Clustering
+2번이 더 가성대비 좋음.
+Clustering = master/slave였다가, worker로 바뀜.
+하둡에서는 Name node/ Data node라 칭한다.
+
+Clustering(분업)
+
+Haoop Eco-System
+ - 수집 시스템
+ - 저장 시스템
+ - 처리 시스템
+ - 분석 시스템
+
+HDFS(Haddop Distributed File System) 명령어을 이용한다면,
+분산환경에서 빅데이터 처리가능. 리눅스 명령어와 비슷하다.
+
+Hadoop은 Linux 환경에서 작동하도록 되어있다. Window에서 작동하지 않음.
+
+윈도우에 가상화 소프트웨어를 설치한다.
+ - VMWare에 리눅스 설치, 리눅스 안에 Hadoop을 설치한다.
+ - Hadoop안에 Eco-System 설치
+
+* VMWare
+다운로드 사이트 (https://www.vmware.com/kr/products/workstation-player/workstation-player-evaluation.html)
+* Linux
+다운로드 사이트 (https://ubuntu.com/download/desktop)
+
+VMWare 설치
+한글경로 피하자.
+VMWare를 지정 해두고 다른 컴퓨터에서도 사용 가능.
+ - VMware-player-full-16.2.3-19376536 관리자권한 실행 ->
+   컴퓨터 리부팅 -> 다시 설치파일 관리자 권한 실행 -> 체크박스 v -> 아래 하나만 체크 -> 둘다 체크 취소 ->
+   둘다 체크 -> 인스톨
+ - VMWare 실행 위에체크 넥스트-> 피니쉬 -> 맨위 크리에이트 클릭-> 브라우져 클릭 -> 다운받은 우분투 리눅스 넥스트->
+ - 1,2,3,4 : hduser 입력 넥스트 -> 
+ - 가상머신 이름(Ubuntu 64-bit), 컴퓨터 하드웨어 가상 저장경로(집에서는 D밑에 폴더 생성하자.) 브라우져 클릭 VMWare_VMs 폴더 생성후 저장 넥스트 ->
+ - 가상머신이 사용할 디스크 용량 지정 40GB 밑에 체크 후 넥스트 -> 그대로 피니쉬. -> 
+ - 실행 후 korean-korean 선택 컨티뉴.-> 위 노말 밑다운로드 체크 컨티뉴-> Erase 체크 후 인스톨 나우 클릭 -> 컨티뉴 클릭.
+ - 서울 컨티뉴.-> 1. hduser pwd = hduser/ login automatically 체크 후 컨티뉴. -> 리스타트 나우 클릭 -> 
+ - 스킵 -> No 체크 후 넥스트 -> 인스톨 창 뜨면 인스톨나우->  완료 한다면 리스타트 나우 -> 스킵 -> 넥스트 -> No체크 넥스트 -> 넥스트 -> Done
+ - 컨트롤 알트 클릭 (변경된 운영체제에서도 사용가능) 알고있음된다. 리눅스 설치 끝. 필요하다면 우분투 한글설정 검색
+
+VMWare 설치
+- 가상의 하드웨어 생성
+- 가상의 하드웨어에 OS(Ubutu Linux) 설치
+
+리눅스의 프롬프트는 터미널이라 한다. 명령어 사용.
+터미널 실행.  
+
+리눅스 명령어
+
+>, >> : Redirection
+
+> f : 출력 방향을 파일로 바꾸는 명령어
+
+| : 다른 프로그램의 표준출력(모니터)을 표준입력(키보드)으로 변환
+test1.py --> 'Hello World' : test.py가 표준출력(모니터)
+
+/.test1.py | ./test2.py 왼쪽에서 표준출력하면 오른쪽에서 표준입력으로 변환되어 처리한다.
+
+stdout.py : 'Hello World' 출력
+stdin.py  : 키보드로부터 입력하여 문자의 갯수를 세어서 화면에 출력.
+./stdout.py | ./stdin.py --> 출력되는 문자의 갯수를 화면에 표시.
+
+
+유저아이디 확인 명령어 : whoami
+
+현재 작업중인 디렉토리 : pwd(Present Working Directory)
+
+현재 작업중인 디렉토리 안에 있는 디렉토리 정보들 출력 : ls
+
+현재 작업중인 디렉토리 안에 있는 디렉토리 상세정보들 출력 : ls -l
+(출력화면에서 dr로시작되는것은 디렉토리라는 뜻 파일이 아님. 첫번 째 hduser는 이용자 계정명, 두번 째 hduser는 그룹)
+    owner  group others
+d    rwx    r-x   ---
+d : directory 폴더
+r(4) : read 읽다
+w(2) : write 쓰다
+x(1) : execute 실행
+rwx : 소유주(이용자)는 읽고 쓰고 실행이 가능하다.
+r-x : group은 쓰기는 불가능 하다.
+--- : 소유주와 그룹이외의 사람들은 읽기쓰기실행을 할 수 없다는 뜻.
+8진수사용.
+4 4 4로 설정한다면, 읽기만 가능한 권한을 주겠다라는 뜻.
+7 7 7로 설정한다면, 모두다 읽기쓰기실행 기능 권한을 주겠다라는 뜻.
+디렉토리 or 파일 권한 설정 : chmod(changemode) 숫자(r:4, w:2, x:1) 파일명 / ex(chmod 764 test.txt)
+
+
+홈에있는 모든 목록을 보여주고 하위 디렉토리가 있다면 그 디렉토리의 목록을 보여주고 그 디렉토리에 하위 디렉토리가 있다면 또 보여주라는 명령어 : ls -R /home(R = Recursive:반복명령)
+
+숨긴파일 디렉토리까지 출력 : ls -al
+
+~은 현재 사용 유저 위치표시다. : cd or cd ~
+
+상위 디렉토리 이동 : cd .. 
+
+현재 디렉토리에 있는 abc폴더로 이동 : cd ./abc:
+
+디렉토리 생성 명령어 : mkdir(make directory) 디렉토리명 / ex(mkdir testdata)
+
+디렉토리 삭제 명령어 : rm -r 디렉토리명 / ex(rm -r testdata)
+
+부모 디렉토리 생성 후 안에 하위 디렉토리를 생성하는 키워드 : mkdir -p 디렉토리명/ 디렉토리명 / ex(mkdir -p mydata/image
+
+터미널 작성된 글자 초기화명령어 : clear
+
+파일 생성 명령어(파일만생성) : touch 파일명 / ex(touch names.txt)
+
+파일 생성 명령어(파일 생성 후 nano에디터 실행) : nano 파일명 / ex(nano hello.py)
+
+파일 생성 명령어(파일 생성 후 내용) : cat > sample / ex(test.txt > 내용 입력 후 ctrl + D)
+ - (키보드)표준입력 -> 파일에 저장
+
+파일 내용 출력 : cat sample / ex(파일이름)
+ - 파일 데이터 -> 표준출력(모니터)
+
+나노에디터 사용하지않고 키보드에서 다이렉트로 파일내용 이어쓰기 명령어 : cat >> 파일명 / (ex cat >> test.txt)
+ - 추가할 내용 입력 후 ctrl + D
+
+파일 복사하는 명령어 : cat 파일명 > 새로만들 파일명 / ex(cat test.txt > sample.txt)
+
+파일 복사 후 디렉토리에 넣는 명령어 : cp 파일명 디렉토리명/ ex(cp sample.txt testdata/)
+
+파일 잘라내기 명령어 : mv 파일명 옮겨질디렉토리명 / ex(mv names.txt mydata) 
+
+파일 or 디렉토리 찾는 명령어 : find 디렉토리 or 파일 / ex(find mydata/*.txt)
+
+find 명령어(-name) : find -name / ex(find -name members.txt)
+
+find 명령어(-type) : find -type 타입명 / (find -type d = 디렉토리, find -type f = 파일)
+
+find 명령어(-name -type 혼용) : find -type 타입명 -name 파일or디렉토리명 / ex(find -type f -name mem*)
+
+파일 내용 수정 명령어 : nano 파일명 / ex(nano test.txt)
+
+파일 삭제 명령어 : rm 파일명 / ex(rm test.txt)
+
+종료 명령어 : shutdown now
+
+우분투에 설치된 Python3 경로확인
+which python3
+/usr/bin/python3
+
+~/ .profile을 열어서 패스 설정
+export PATH=/usr/bin/python3:$PATH
+
+.profile을 저장하고
+source ~/ .profile 명령으로 시스템에 반영함
+
+파이썬 접속 명령어 : which python3 -> 나온경로 입력
+파이썬 접속 종료 명령어 : exit() 
+파이썬 환경변수 설정 명령어 순서 : ls -al -> nano .profile -> export PATH=/usr/bin/python3:$PATH
+( : 는 구분자이며, 시스템 PATH환경변수에 기존 PATH경로에 /usr/bin/python3 추가하겠다 라는뜻) 저장 후 나오기.
+-> source .profile 입력 -> python3입력 실행 끝
+python파일 바로 실행 시키는 법. : py파일 nano에디터 실행 후 맨 위에 #! /usr/bin/python3 저장 -> chmod로 실행권한 부여.
+-> ./파일명 실행.
+파일의 특정 데이터 찾는법 : ./load_mem.py | grep ".*koon.*"
+
+
+문제 1.
+test.txt의 내용을 sample.txt 아래에 추가하려면?
+cat test.txt >> sample.txt
+
+문제2.
+testdata 디렉토리에 test.txt를 파일명은 copy.txt로 복사해보세요.
+cp test.txt testdata/copy.txt
+
+문제3.
+testdata 디렉토리를 삭제해 보세요.
+rm -r testdata
+
+문제4.
+mydata 디렉토리 안에 test.txt를 복사해보세요.
+
+문제5.
+mydata/image/안에 test.txt를 복사할 때 copy.txt로 저장
+
+문제6.
+image디렉토리 삭제
+
+문제7.
+names.txt를 잘라내서 mydata안에 넣은 후 memvers.txt로 저장
+mv names.txt mydata/memvers.txt
+
+문제8.
+members.txt 파일을 읽어서 화면에 목록 출력하기.
+#! /usr/bin/python3
+with open('members.py', 'r') as fin:
+        for line in fin:
+                if len(line)<2:
+                        break
+                num, name, phone = line.split()     
+                str = "{}\t{}\t{}".format(num,name,phone)
+                print(str)

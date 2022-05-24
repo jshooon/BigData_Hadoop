@@ -1,0 +1,220 @@
+Storage : 분산환경에서 데이터 입출력 (HDFS명령어가 있다.)
+Process : 분산환경에서 데이터 처리, 분석 (통계, ML) (MapReduce, Spark)
+
+MapReduce를 사용하여 분석하는 예
+텍스트 파일로부터 각 단어의 빈도수(분석)를 계산하는 예
+ - Mapper : 텍스트 파일에서 한행을 읽어서 단어별로 쪼갠 후 다음 단계로 전달한다.
+  -Shuffle(섞어준다), Sort(동일단어는 인접한 순서로 배치됨) (FrameWork에서 해줌)
+ - Reducer : Mapper에서 전달된 단어들의 빈도수를 계산하여 다음 단계로 전달한다.
+  - Reducer 출력을 파일에 저장(FrameWork에서 해줌)
+
+hadoop-streaming-xxx.jar(FrameWork에서 작업하는 것을 중간에 도와줌)
+
+디렉토리 만든다.
+mkdir map_red
+
+#Mapper.py
+#!/usr/bin/python3
+
+# mapper.py
+
+import sys
+
+for line in sys.stdin:    # 입력스트림 키보드에서 전달한 입력값이 한행한행 line으로 전달. 인풋함수의 내부에선 사용하는것.
+    line = line.strip()    # 한행이 넘어오면 좌우 공백 삭제.
+    words = line.split()  # 한개의 공백이나 연속된 공백을 한개의 구분자로 간주함(디폴트 값은 공백) 리스트값으로 반환.
+
+    for word in words:   # 리스트에서 나온 단어들을 word에 담는다
+	# 단어에 1이라는 숫자를 매핑한다. (분석,계산하기 위하여)
+        print( '%s\t%s' % (word, 1) )     # 단어와 숫자 1을 매핑하여 출력한다(%s = {}와같다.)
+---------------------------------------------------------------------------------------------------------------------------
+
+※FrameWork를 사용하기전 수동으로 test※
+텍스트 파일로 분석을 하려면
+텍스트가 작성된 파일을 하나만든 후, 아래와 같이 실행
+(input 기능이 있기때문에 |를 사용하여 가능하다.)
+cat biden.txt | ./Mapper.py
+실행 하면된다.
+(sort까지 사용하여 정렬하기. 숫자부터 알파벳순.)
+cat biden.txt | ./Mapper.py | sort -k 1 (정렬의 기준은 단어가 키가되어 알파벳순으로 나오라는 명령어)
+
+빈도수가 몇인지 계산하는 예제.
+
+#!/usr/bin/python3
+
+# reducer.py
+import sys
+
+current_word = None
+current_count = 0
+word = None
+
+for line in sys.stdin:
+    line = line.strip()
+	# 데이터가 탭사이로 키와밸류로 넘어오기 때문에 분리하여 저장
+    word, count = line.split('\t', 1)  # split('separator', max_split=-1)
+
+    try:
+        count = int(count) # 정수로 변환.
+    except ValueError:     # 혹시 모를 경우를 대비하여 예외처리.
+        # count 가 숫자가 아니면 아래 코드를 실행하지 않고 지나감
+        continue
+
+    if current_word == word:            # 동일 단어가 반복될 시
+        current_count += count
+    else:				# 새로운 단어가 나왔다면, 그전까지의 단어와 카운트 출력
+        if current_word:                # 동일 단어가 반복 종료될 시, 지금까지 카운트 출력
+            print( '%s\t%s' % (current_word, current_count) )
+        current_count = count           # 새로 나온 단어가 시작될 시
+        current_word = word		# 다시 단어와 카운트 저장.
+
+# 마지막 단어가 그 전에 나왔던 단어와 같아진다면 출력이 없어지고,
+# 새로 나온 경우에도 마찬가지로 출력이 안되기 때문에
+if current_word == word:                # 마지막 단어는 위의 루프 안에서 출력하지 못하므로 루프 종료 후 아래에서 출력
+    print( '%s\t%s' % (current_word, current_count))
+
+정렬된 데이터를 리듀서로 받는다.(정렬이 되어야 한다.)
+(전달받은 텍스트파일 단어의 빈도수를 구하고, 알파벳 순으로 정렬하고, 빈도수 오름차순 정렬을 다시 해준다.)
+cat biden.txt | ./Mapper.py | sort -k 1 | ./Reducer.py | sort -r -n -k 2
+sort -r : 역순, sort -n : 문자열을 정수정렬
+
+---------------------------------------------------------------------------------------------------------------------------
+
+hadoop MapReduce 사용명령어
+
+hadoop jar $HADOOP_HOME/share/hadoop/tools/lib/hadoop-streaming-3.2.2.jar -files Mapper.py,Reducer.py -input /user/mydata/input/* -output /user/mydata/output -mapper Mapper.py -reducer Reducer.py
+
+(하둡이란 명령어로 jar파일 실행한다./ jar파일이 있는경로, jar파일/ - files
+Mapper.py,Reducer.py 실행/-input 파일/ 저장은 ouput에, -mapper는 Mapper.py -reducer는 Reducer.py)
+
+문제1.
+cvs
+"Month", "1958", "1959", "1960"
+"JAN",  340,  360,  417
+"FEB",  318,  342,  391
+"MAR",  362,  406,  419
+"APR",  348,  396,  461
+"MAY",  363,  420,  472
+"JUN",  435,  472,  535
+"JUL",  491,  548,  622
+"AUG",  505,  559,  606
+"SEP",  404,  463,  508
+"OCT",  359,  407,  461
+"NOV",  310,  362,  390
+"DEC",  337,  405,  432
+위의 파일에서 각 연도별 평균 승객수를 구해보세요
+hadoop의 처리 프레임워크인 MapReduce를 활용하며 Python으로 작성해보세요.
+# 정수몫을 구할때에는 // 사용(소수점 버림)
+ex) Reducer 출력, output/part-00000
+ {'1958':341, '1959':420, '1960':520}
+
+mapper
+#! /usr/bin/python3
+
+import sys
+
+for line in sys.stdin:
+
+        line = line.strip()
+        values = line.split(',')
+        for i in range(0,len(values)):
+                try:
+                        num = int(values[i])
+                except:
+                        continue
+                print('{}\t{}'.format(num, 1958+i-1))
+
+reducer
+#! /usr/bin/python3
+
+import sys
+
+passengers = {'1958':[], '1959':[], '1960':[]}
+
+for line in sys.stdin:
+        line = line.strip()
+        v, y = line.split('\t', 1)
+        passengers[y.strip()].append( int(v.strip()))
+
+avg = {}
+avg['1958'] = sum( passengers['1958'])// len(passengers['1958'])
+avg['1959'] = sum( passengers['1959'])// len(passengers['1959'])
+avg['1960'] = sum( passengers['1960'])// len(passengers['1960'])
+
+print(avg)
+
+---------------------------------------------------------------------------------------------------------------------------
+
+숙제 
+침대가 3개인 집의 최소/최대가격 구하기
+
+csv
+"Sell", "List", "Living", "Rooms", "Beds", "Baths", "Age", "Acres", "Taxes"
+142, 160, 28, 10, 5, 3,  60, 0.28,  3167
+175, 180, 18,  8, 4, 1,  12, 0.43,  4033
+129, 132, 13,  6, 3, 1,  41, 0.33,  1471
+138, 140, 17,  7, 3, 1,  22, 0.46,  3204
+232, 240, 25,  8, 4, 3,   5, 2.05,  3613
+135, 140, 18,  7, 4, 3,   9, 0.57,  3028
+150, 160, 20,  8, 4, 3,  18, 4.00,  3131
+207, 225, 22,  8, 4, 2,  16, 2.22,  5158
+271, 285, 30, 10, 5, 2,  30, 0.53,  5702
+ 89,  90, 10,  5, 3, 1,  43, 0.30,  2054
+153, 157, 22,  8, 3, 3,  18, 0.38,  4127
+ 87,  90, 16,  7, 3, 1,  50, 0.65,  1445
+234, 238, 25,  8, 4, 2,   2, 1.61,  2087
+106, 116, 20,  8, 4, 1,  13, 0.22,  2818
+175, 180, 22,  8, 4, 2,  15, 2.06,  3917
+165, 170, 17,  8, 4, 2,  33, 0.46,  2220
+166, 170, 23,  9, 4, 2,  37, 0.27,  3498
+136, 140, 19,  7, 3, 1,  22, 0.63,  3607
+148, 160, 17,  7, 3, 2,  13, 0.36,  3648
+151, 153, 19,  8, 4, 2,  24, 0.34,  3561
+180, 190, 24,  9, 4, 2,  10, 1.55,  4681
+293, 305, 26,  8, 4, 3,   6, 0.46,  7088
+167, 170, 20,  9, 4, 2,  46, 0.46,  3482
+190, 193, 22,  9, 5, 2,  37, 0.48,  3920
+184, 190, 21,  9, 5, 2,  27, 1.30,  4162
+157, 165, 20,  8, 4, 2,   7, 0.30,  3785
+110, 115, 16,  8, 4, 1,  26, 0.29,  3103
+135, 145, 18,  7, 4, 1,  35, 0.43,  3363
+567, 625, 64, 11, 4, 4,   4, 0.85, 12192
+180, 185, 20,  8, 4, 2,  11, 1.00,  3831
+183, 188, 17,  7, 3, 2,  16, 3.00,  3564
+185, 193, 20,  9, 3, 2,  56, 6.49,  3765
+
+Mapper
+#! /usr/bin/python3
+
+import sys
+items = ['Sell', 'List', 'Living', 'Rooms', 'Beds', 'Baths', 'Age', 'Acres', 'Taxes']
+for line in sys.stdin:
+        line = line.strip()
+        values = line.split(',')
+        for i in range(0,len(values)):
+                try:
+                        num = int(values[i].strip())
+                except:
+                        continue
+                print("{}\t{}".format(num,items[i]))
+
+Reducer                                             
+#! /usr/bin/python3
+
+import sys
+
+items = {'Sell':[], 'List':[], 'Living':[], 'Rooms':[], 'Beds':[], 'Baths':[], 'Age':[], 'Acres':[], 'Taxes':[]}
+beds = {'three_beds':[]}
+sell = []
+for line in sys.stdin:
+        line = line.strip()
+        a,b = line.split('\t',1)
+        items[b.strip()].append(int(a.strip()))
+
+for i in range(0,len(items['Beds'])):
+        if items['Beds'][i] == 3:
+                sell.append(items['Sell'][i])
+                beds['three_beds'].append(int(items['Beds'][i]))
+
+print('minsell : ', min(sell))
+print('maxsell : ', max(sell))

@@ -1,0 +1,223 @@
+Hadoop Eco-System
+ - Storage(hdfs)분산수집,저장, Process(MapReduce)분산처리
+ - Hive : BigData를 다루기 위한 DB, SQL을 사용하여, 분산환경에서 hdfs, MapReduce 활용.
+   * Enterprise(대기업) Data Warehouse(데이터 참고)로 적합.
+   * Data Warehouse : 여러부서의 데이터베이스를 ETL과정을 거쳐서 하나의 큰 DB에 통합 저장하여,
+			 종합적으로 의사결정하는데 도움을 주기위한 전사적인 통합 DB.
+   * Data Mart : 작은 규모의 Data Warehouse Data Warehouse에 통합된 DB를 한번더 ETL과정을 거쳐서
+		 회사의 각 부서, 혹은 집단마다 특화된 데이터를 특정 부서나 집단에게 데이터 참고를 제공 하기 위한 DB
+   * HiveQL(SQL과 비슷함) : SELECT AVG(salary) FROM emp
+   * 데이터는 csv에 저장, 저장된 데이터는 SQL을 사용하여, 테이블처럼 다루기 위해 메타데이터로 존재한다.
+	Metadata : 데이터에 대한 정보, 데이터에 대한 데이터
+	- jsp로 비유하자면, <div id ='empinfo'>xxxxxxxxxxxxx</div> 여기서 div가 Metadata 데이터에 설명이 들어가있는것.
+ - Hiveserver2 : 웹사이트에 데이터를 표기하기 위해 사용.
+-----------------------------------------------------------------------------------------------------------
+
+HIVE 설치
+설치사이트(https://archive.apache.org/dist/hive/hive-3.1.2/)
+1. sudo apt update (현재 리눅스의 애플리케이션의 설치정보를 최신버전으로 업데이트한다.)
+
+2. wget https://archive.apache.org/dist/hive/hive-3.1.2/apache-hive-3.1.2-bin.tar.gz (Hive설치)
+
+3. tar -xvzf apache-hive-3.1.2-bin.tar.gz (압축 풀기)
+
+4. mv apache-hive-3.1.2-bin hive-3.1.2 (파일명 변경)
+
+5. sudo nano .bashrc (환경변수 설정 하기위해 열어줌)
+# 이미 환경변수가 설정되었다면 $를 붙여져있다.
+
+6. (맨밑에 써준다. 저장 후 나가기)
+export HIVE_HOME=/home/jshoon/hive-3.1.2
+export PATH=$PATH:$HIVE_HOME/bin
+
+7. source .bashrc (한번 실행해준다.)
+
+8. echo $HIVE_HOME (설정 경로 확인)
+
+9. echo $PATH(PATH경로 확인)
+
+10. cd hive-3.1.2/bin (이동)
+
+11. nano hive-config.sh (열기) 
+
+12. export HAdOOP_HOME=/home/jshoon/hadoop (맨밑 하둡 설치 경로저장)
+
+13. source hive-config.sh (한번 실행해준다.)
+
+14. echo $HADOOP_HOME (설정 경로 확인)
+
+15. hdfs dfs -mkdir /tmp (디렉토리 생성)
+
+16. hdfs dfs -chmod g+w /tmp (그룹에 쓰기 권한 주기)
+
+17. hdfs dfs -mkdir -p /user/hive/warehouse (디렉토리 생성)
+
+18. hdfs dfs -chmod g+w /user/hive/warehouse (쓰기 권한 주기)
+
+19. cd hive-3.1.2/conf (이동)
+
+20. cp hive-default.xml.template hive-site.xml (conf에 그대로 파일명 변경 후 복붙)
+
+21. cd .. (상위폴더로 이동)
+
+22. cd bin(디렉토리 이동) 
+# 내장된 데이터베이스 엔진 derby
+★★★★★★★★★★★★딱한번만 실행해야함★★★★★★★★★★★★
+23. schematool -dbType derby -initSchema (데이터베이스 엔진을 사용할 것이라 초기화 해주기)
+# 하둡에있는 라이브러리와 하이브에있는 라이브러리가 버전이 달라서 에러가 난다면 밑에 해결법
+#해결법
+1. cd ../lib (디렉토리 이동)
+
+2. guava 버전확인
+
+3. rm guava-19.0.jar (파일 삭제)
+
+4. find $HAOOP_HOME -type f | grep 'guava' (구아바 파일 찾기)
+
+5. cp /home/jshoon/hadoop/share/hadoop/hdfs/lib/guava-27.0-jre.jar ./ (hadoop에 있는 구아바 복붙)
+# ls 하여 복붙 됬는지 확인하기 
+
+6. cd ../bin(디렉토리 이동)
+
+30. schematool -dbType derby -initSchema (데이터베이스 엔진을 사용할 것이라 초기화 해주기)
+#Illegal character entity 사용해선 안되는 문자가 있다는 에러가 난다면 밑에 해결법
+해결법
+1. nano ../conf/hive-site.xml(파일 열기)
+
+2. ctrl+w transactional 검색 후 Alt + R 눌러서 transactional옆에 &#8;가 나와있는 곳 까지 이동.
+
+3. &#8; 삭제후 공백 한칸 저장 후 나오기.
+
+#★★★★★★★★★★★★딱한번만 실행해야함★★★★★★★★★★★★
+4. schematool -dbType derby -initSchema (데이터베이스 엔진을 사용할 것이라 초기화 해주기)
+# 실행 됬다면 metastore_db와 derby.log가 생긴다. metastore_db에 테이블이 생성된다.
+
+35. hive(하이브 쉘 실행)
+# 에러가 난다면 밑에 해결법
+해결법
+1.nano ../conf/hive-site.xml(파일열고 <configuration> 하단 첫 부분에 붙여넣기)
+  <property>
+    <name>system:java.io.tmpdir</name>
+    <value>/tmp/hive/java</value>
+  </property>
+  <property>
+    <name>system:user.name</name>
+    <value>${user.name}</value>
+  </property>
+# 하이브 프롬프트가 나온다면 성공.
+show databases; 실행 해보기 default DB가 있는것을 확인할 수 있다.
+
+-----------------------------------------------------------------------------------------------------------
+
+hive 명령어
+hive 실행파일이 있는 곳에서 실행 해야한다.
+1. show databases; (db 목록 확인)
+2. show tables; (table 목록 확인)
+3. create database db명; (db 생성)
+4. use db명; (지정 db 사용)
+5. CREATE TABLE IF NOT EXISTS table명(컬럼명,타입); (table 생성)
+6. exit; (종료)
+# 테이블 생성 예시
+CREATE TABLE IF NOT EXISTS employee ( 
+eid int, name String,
+salary String, destination String )
+COMMENT 'Employee details'
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+LINES TERMINATED BY '\n'
+STORED AS TEXTFILE
+TBLPROPERTIES ('NO_AUTO_COMPACTION' = 'true');
+
+#로컬 시스템에 employee.csv 생성
+아래내용 입력
+1201,Gopal,45000,Technical manager
+1202,Manisha,45000,Proof reader
+1203,Masthanvali,40000,Technical writer
+1204,Kiran,40000,Hr Admin
+1205,Kranthi,30000,Op Admin
+
+# 데이터 파일을 로드하여 employee 테이블과 연결한다.
+LOAD DATA  LOCAL INPATH  '/home/jshoon/employee.csv' OVERWRITE INTO TABLE employee;
+
+# SELECT * FROM employee; 실행하면 employee테이블 데이터를 출력한다.
+-----------------------------------------------------------------------------------------------------------
+
+hiveserver2(하둡과 웹사이트를 연동 시키기, 외부에서 접속하기 위해 사용)
+1. hiveserver2가 있는 폴더에서 hiveserver2 입력 (hiveserver2 실행)
+
+2. 터미널 하나 더 열어준다.
+
+3. 새로 실행한 터미널에서 beeline 입력 (beeline 실행)
+
+4. beeline 프롬프트에서 !connect jdbc:hive2://localhost:10000/userdb;(name,password 입력. 포트는 보통 10000에서 돈다.)
+# 에러가 난다면, 밑에 해결법
+1.
+$HADOOP_HOME/etc/hadoop/core-site.xml 하단에 아래 내용 추가
+
+<property>
+     <name>hadoop.proxyuser.계정이름.hosts</name>
+     <value>*</value>
+</property>
+<property>
+     <name>hadoop.proxyuser.계정이름.groups</name>
+     <value>*</value>
+</property>
+
+2.
+$HIVE_HOME/conf/hive-site.xml 하단에 아래의 내용 추가
+
+  <property>
+    <name>hive.server2.active.passive.ha.enable</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>hive.metastore.event.db.notification.api.auth</name>
+    <value>false</value>
+  </property>
+저장 후 나오기
+
+5. stop-all.sh > start-all.sh > 
+
+cd hive-3.1.2/bin 이동 후 hiveserver2실행 > 새로운 터미널 열고 beeline실행
+
+!connect jdbc:hive2://localhost:10000/userdb; 입력 후 계정이름 비밀번호 입력
+
+show tables;
+SELECT * FROM employee;
+SELECT AVG(salary) FROM employee;
+
+
+hiveserver2에 외부에서 접속
+Java 프로그램
+Python
+
+다운받은 라이브러리를 파일 위치 기억해놓고
+이클립스 실행한 후 프로젝트 우클릭 프로퍼티스 자바 빌드 패스 간다음 add External JARs 누른다음 추가
+리눅스 아이피 주소 기억해 두고 변경한다음 실행.
+
+hive를 연결하는 java 프로그램을 작성할 때 요구되는 라이브러리 검색한다면 나온다.
+필요한 버전이 무엇인지 확인 후
+https://mvnrepository.com/ 들어가서
+hive-jdbc-*(버전).jar 다운받는다.
+-----------------------------------------------------------------------------------------------------------
+
+hdfs
+hdfs 모듈을 사용하여 파이썬에서 hdfs 사용하기
+
+VM : Linux, hadoop, hdfs
+Host : Windows, Jupyter notebook
+
+1. ip addr (ubuntu ip주소 확인)
+ip주소 : 192.168.43.128
+2. 호스트 컴의 Anaconda Prompt 에서 pip install hdfs 명령으로 설치
+3. 
+Jupyter notebook으로 실행
+import pandas as pd
+from hdfs import InsecureClient
+
+client_hdfs = InsecureClient('http://192.168.43.128:9870')  # namenode의 웹 인터페이스
+with client_hdfs.read('/user/mydata/mydata.csv') as reader:
+    df = pd.read_csv(reader,index_col=0)
+print( df )
+
+-----------------------------------------------------------------------------------------------------------

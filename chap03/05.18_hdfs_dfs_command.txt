@@ -1,0 +1,236 @@
+Hadoop
+ - 빅데이터 분산, 수집,  저장, 처리 플랫폼.
+ - Storage(저장) : 데이터를 분산환경에 쓰고 읽는 기능 (알고리즘 (HDFS)
+ - Process(처리) : 분산환경에서 처리, 통계분석,  ML분석(MapReduce : Mapper와 Reducer의 혼합) 
+      1. Mapper   :  데이터를 여러개로 key, value로 나눈다. (ex : '국가'(key)-1(value), '복지'-1,.....) 
+      2. shuffle   :   순서없이 데이터를 섞는다.
+      3. Reducer  :   데이터 가공. (ex : key,value로 나뉜 데이터를 취합하여 value를 더하여 국가,복지라는 단어가 몇번 나왔는지 알 수 있다.)
+
+Hive : Data Warehouse
+
+-copyFromLocal 파일명 dfs저장경로 (로컬에있는 파일을 복사하여 dfs에 저장)
+
+-copyToLocal 파일명 로컬저장경로 (dfs에있는 파일을 복사하여 로컬에 저장)
+
+-cp 파일명 (dfs안에서 파일복사)
+
+-rm 파일명 (dfs의 파일삭제)
+
+-rm -r 디렉토리명 (dfs의 디렉토리 삭제)
+
+-get 파일명 로컬 디렉토리 (dfs에있는 파일을 로컬에 복사)
+
+-get 파일명 변경파일명 디렉토리 (dfs에있는 파일을 로컬에 복사하면서 파일이름까지 변경)
+
+-put 파일명 dfs 디렉토리 (로컬에있는 파일을 dfs에 복사)
+
+-put 파일명 dfs 변경파일명 디렉토리 (로컬에있는 파일을 dfs에 복사하면서 파일이름까지 변경)
+
+
+-moveFromLocal 로컬파일 dfs파일 (로컬에있는 파일을 잘라내서 dfs에 붙여넣기)
+
+-mv (dfs 내에서 파일의 이동 a->)
+
+-head dfs파일명 (파일내용의 상단부분만 표시)
+
+-tail dfs파일명 (파일내용의 하단부분만 표시)
+
+-appendTofile
+
+-test -e dfs파일명 / (exist)파일의 유무 확인
+-test -z dfs파일명 / (zero)파일의 사이즈가 제로인지 확인
+-test -d dfs디렉토리명 / (directory)디렉토리인지 확인
+-test -f dfs파일명 / (file)파일인지 확인
+-test -s dfs파일명 / (size)파일사이즈가 있는지 확인
+입력후 echo $?
+0은 긍정
+1은 부정
+
+------------------------------------------------------------------------------------------------------------------
+
+hdfs 명령으로 hadoop storage 관련작업
+hdfs를 지원하는 파이썬 모듈
+hdfs를 지원하는 HBase, Hive, ....
+HBase : hdfs에서 지원하는 컬럼기반 DB
+Hive : SQL과 유사한 HiveQL을 사용하는 hdfs기반 데이터 웨어하우스
+
+파이썬hdfs 모듈 설치
+sudo apt-get install python3-pip (python3-pip다운로드)
+pipi.org (파이썬 모듈 다운로드 사이트)
+pip3 (pipi.org사이트에 올려져있는 모듈을 다운받는 명령어)
+pip3 install pandas hdfs (pandas hdfs 다운로드)
+pip3 install pyarrow (pyarrow 다운로드)
+
+------------------------------------------------------------------------------------------------------------------
+
+Linux local : hdfs dfs -copyToLocal /user/xxx/my.txt ~/ (dfs에있는 파일을 로컬에 복사)
+
+* 위의 기능과 같은것(파일 읽기)을 파이썬프로그램으로 만들기
+# python파일 만들기 (dfs에있는 파일내용 불러와서 화면에 출력기능)
+1. nano python_hdfs_read.py
+2. 
+import pandas as pd
+import numpy as np
+from hdfs import InsecureClient # 서버에 접속하겠다라는 뜻.
+# 읽기위한 스트림 연결.
+Client_hdfs = InsecureClient('http://localhost:9870')
+# 읽어오기 위한 객체 스트림 생성.
+with Client_hdfs.read('/user/mydata/names.dat', encoding='utf-8') as reader:
+        contents = reader.read()
+
+print(contents)
+
+------------------------------------------------------------------------------------------------------------------
+
+*파일쓰기 프로그램 만들기
+
+with hdfs_Client.write('/user/filename', encoding='utf-8') as writer:
+	writer.write('data')
+print('End of write')
+
+로컬 파일에 있는 내용을 위의 방법(한행한행 확인하는것.)으로 dfs 파일에 저장해보세요.
+
+import pandas as pd
+import numpy as np
+from hdfs import InsecureClient # 서버에 접속하겠다라는 뜻.
+# 로컬에있는 파일내용 읽어오기
+with open('names.dat') as fin:
+        contents = fin.read()
+
+# 스트림 연결.
+Client_hdfs = InsecureClient('http://localhost:9870')
+# 쓰기위한 객체 스트림 생성.
+with Client_hdfs.write('/user/mydata/testw.txt', overwrite=True,  encoding='utf-8') as wri>
+        writer.write(contents)
+
+print('End of write')
+
+------------------------------------------------------------------------------------------------------------------
+
+* 파일 업로드, 다운로드 프로그램 만들기
+(로컬에있는 파일을 dfs에 파일 생성 후 저장하기)
+(dfs에있는 파일을 로컬에 파일 생성 후 저장하기)
+hdfs_Client.upload('로컬파일', 'dfs파일')   # -copyFromLocal과 같다.
+hdfs_Client.download('dfs파일', '로컬파일') # -copyToLocal과 같다.
+
+import pandas as pd
+import numpy as np
+from hdfs import InsecureClient # 서버에 접속하겠다라는 뜻.
+
+# 스트림 연결.
+Client_hdfs = InsecureClient('http://localhost:9870')
+
+# 로컬에있는 파일내용 dfs파일에 저장하기.
+#Client_hdfs.upload('/user/up.txt', 'mem.txt')
+
+# dfs에있는 파일내용 로컬에 저장하기.
+#Client_hdfs.download('/user/mydata/names.dat', 'mem.txt') 
+
+# dfs에 파일이 있는지 확인하기.
+print(Client_hdfs.content('/user/up.txt'))
+
+------------------------------------------------------------------------------------------------------------------
+
+Hadoop(Storage, Process)
+
+파이썬 데이터 분석
+
+ - 통계			: pandas(데이터 프레임을 가지고 표 계산), numpy(일반수학 계산)
+
+# 표만드는법
+
+import pandas as pd
+
+data = {
+	'A':[20,14,30], #90도로 돌리면 A,B가 컬럼명이 되고 리스트 안의 값들이 컬럼 값이 된다.
+	'B':[30,45,20]
+	}
+
+df = pd.DataFrame(data) # init 메소드가 돌아가면서 객체 생성.
+print(df)
+
+CSV (comma Separated Values) : 콤마가 분리된 값
+
+DataFrame -> CSV포멧으로 저장됨
+CSV파일을 읽어서 -> DataFrame으로 불러오기 가능.
+
+# 테이블 객체가 파일로 저장된다.
+df.to_csv('mydata.csv') 상대경로가 없다면 기준경로로 저장(기준경로 = 프로그램이 실행되는 디렉토리)
+
+# 파일의 테이블을 읽어서 테이블 객체로 변환한다. 변수에 저장하여 사용하는것이 좋다.
+df2 = pd.read_csv('mydata.csv')
+print(df2)
+
+#CSV파일로 전환할 때, 첫줄의 인덱스도 저장되기 때문에 첫줄은 인덱스라는 것을 
+#알려줄 때 속성을 작성한다.
+df2 = pd.read_csv('mydata.csv', index_col=0)
+#속성을 작성하면 출력할 때 저장되었던 인덱스 줄이 사라진다.
+
+#기술통계를 분석할 때에는(통계를 기술한다)
+#describe()함수를 사용한다.
+print(df2.describe())
+
+# 로컬에서 생성된 DataFrame 객체를 dfs에 csv로 저장하기
+1.                             
+import pandas as pd
+from hdfs import InsecureClient # 서버에 접속하겠다라는 뜻.
+
+# 로컬에있는 객체 읽어오기
+df = pd.read_csv('mydata.csv',index_col=0)
+
+# 스트림 연결.
+Client_hdfs = InsecureClient('http://localhost:9870')
+
+2.
+with Client_hdfs.write('/user/sample.csv', overwrite=True, encoding='utf-8') as writer:
+        df.to_csv(writer)
+
+print('CSV saved')
+
+# dfs에 저장된 csv 파일을 읽어서 DataFrame 객체를 생성하고 통계함수(sum)를 실행한다.
+with Client_hdfs.read('/user/sample.csv') as reader:
+	df = pd.to_csv(reader, index_col=0)
+print(df2.sum(axis=0)) #axis=0 세로축 axis=1 은 가로축
+1.
+import pandas as pd
+from hdfs import InsecureClient
+
+df = pd.read_csv('mydata.csv', index_col=0)
+
+print('sum')
+print(df.sum(axis=0))
+
+# 스트림 연결.
+Client = InsecureClient('http://localhost:9870')
+2.
+with Client.read('/user/jshoon/user/mydata.csv') as reader:
+        df2 = pd.read_csv(reader, index_col=0)
+        print(type(df2))
+        df2.sum(axis=0).to_csv('axis0_sum.csv', encoding='utf-8')
+        print('results of sum saved!')
+
+------------------------------------------------------------------------------------------------------------------
+
+ - Machine Learning(AI) : sci-learn, Tensorflow(인공신경망)
+
+------------------------------------------------------------------------------------------------------------------
+
+문제 1.
+hdfs 명령을 사용하여 names.dat 파일을 분산환경에 복사해보세요.
+hdfs dfs -copyFromLocal names.dat /user/mydata
+
+문제 2.
+로컬에있는 파일 내용을 분산환경에 있는 파일내용 밑에 붙여쓰기
+hdfs dfs -appendToFile localfile destfile 
+
+문제3.
+/user/mydata 디렉토리의 권한 설정을 rwxrwxr-x 로 변경해보세요.
+hdfs dfs -chmod 775 /user/mydata/
+
+문제4.
+dfs에 있는 sample.txt를 로컬에 복사.
+hdfs dfs -CopyToLocal /user/mydata/sample.txt copysample.txt
+
+문제5.
+로컬파일 testdata.txt에 20행 정도를 입력하고 그 파일을 dfs sample.txt 파일의 아래에 추가해보세요
+hdfs dfs -appendToFile testdata.txt sample.txt
