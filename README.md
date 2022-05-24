@@ -3,7 +3,6 @@
 OS : Linux   
 Languages : Python   
 
-# Hadoop
 * chap01
   * VMWare, Linux 설치 방법
   * Terminal 사용법
